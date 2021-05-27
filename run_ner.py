@@ -32,7 +32,7 @@ class Ner(BertForTokenClassification):
     def forward(self, input_ids, token_type_ids=None, attention_mask=None, labels=None,valid_ids=None,attention_mask_label=None):
         sequence_output = self.bert(input_ids, token_type_ids, attention_mask,head_mask=None)[0]
         batch_size,max_len,feat_dim = sequence_output.shape
-        valid_output = torch.zeros(batch_size,max_len,feat_dim,dtype=torch.float32,device='cuda')
+        valid_output = torch.zeros(batch_size,max_len,feat_dim,dtype=torch.float32,device=None)
         for i in range(batch_size):
             jj = -1
             for j in range(max_len):
@@ -206,8 +206,11 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
         for i, token in enumerate(tokens):
             ntokens.append(token)
             segment_ids.append(0)
-            if len(labels) > i:
-                label_ids.append(label_map[labels[i]])
+            try:
+                if len(labels) > i:
+                    label_ids.append(label_map[labels[i]])
+            except KeyError:
+                pass
         ntokens.append("[SEP]")
         segment_ids.append(0)
         valid.append(1)
@@ -581,13 +584,13 @@ def main():
                         temp_1.append(label_map[label_ids[i][j]])
                         temp_2.append(label_map[logits[i][j]])
 
-        report = classification_report(y_true, y_pred,digits=4)
-        logger.info("\n%s", report)
-        output_eval_file = os.path.join(args.output_dir, "eval_results.txt")
-        with open(output_eval_file, "w") as writer:
-            logger.info("***** Eval results *****")
-            logger.info("\n%s", report)
-            writer.write(report)
+        # report = classification_report(y_true, y_pred,digits=4)
+        # logger.info("\n%s", report)
+        # output_eval_file = os.path.join(args.output_dir, "eval_results.txt")
+        # with open(output_eval_file, "w") as writer:
+        #     logger.info("***** Eval results *****")
+        #     logger.info("\n%s", report)
+        #     writer.write(report)
 
 
 if __name__ == "__main__":
